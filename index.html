@@ -1,0 +1,277 @@
+```html
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Hiển thị Code C++</title>
+    <style>
+        body {
+            font-family: Consolas, monospace;
+            background-color: #1e1e1e;
+            color: #dcdcdc;
+            padding: 20px;
+        }
+        h2 {
+            color: #4fc3f7;
+        }
+        pre {
+            background-color: #2d2d2d;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Bài 1: Cây nhị phân biểu thức</h2>
+<pre>
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+#include &lt;cstdlib&gt;
+using namespace std;
+
+typedef struct N{
+    string ND;
+    N *LKT;
+    N *LKP;
+}nut;
+
+typedef nut* cay;
+void taocay(cay &L,string S[],int i,int n){
+	if (i >= n||S[i] == "a")
+	return; 
+    L = new nut;
+    L->ND = S[i];
+    L->LKT = NULL;
+    L->LKP = NULL;
+    taocay(L->LKT, S, 2 * i + 1, n);
+    taocay(L->LKP, S, 2 * i + 2, n);
+}
+void duyettruoc(cay L) {
+    if (L != NULL) {
+        cout << L->ND << " ";
+        duyettruoc(L->LKT);
+        duyettruoc(L->LKP);
+    }
+}
+void duyetgiua(cay L) {
+    if (L != NULL) {
+        duyetgiua(L->LKT);
+        cout << L->ND << " ";
+        duyetgiua(L->LKP);
+    }
+}
+void duyetsau(cay L) {
+    if (L != NULL) {
+        duyetsau(L->LKT);
+        duyetsau(L->LKP);
+        cout << L->ND << " ";
+    }
+}
+bool laToanTu(string s) {
+    return s == "+" ||
+           s == "-" ||
+           s == "*" ||
+           s == "/";
+}
+double tinh(cay L) {
+	if (L == NULL) return 0;
+    if (!laToanTu(L->ND)) {
+    	return atof(L->ND.c_str());
+    }
+    double a = tinh(L->LKT);
+    double b = tinh(L->LKP);
+    if (L->ND == "+")
+        return a + b;
+    if (L->ND == "-")
+        return a - b;
+    if (L->ND == "*")
+        return a * b;
+    if (L->ND == "/")
+        return a / b;
+    return 0;
+}
+int main() {
+    cay T;
+    string S[] = {
+
+        "-",
+        "+", "*",
+        "3", "/", "5", "6",
+        "a", "a", "8", "2"  
+    };
+    int n = 11;
+    taocay(T, S, 0, n);
+    cout << "Duyet truoc:\n";
+    duyettruoc(T);
+    cout << "\n\nDuyet giua:\n";
+    duyetgiua(T);
+    cout << "\n\nDuyet sau:\n";
+    duyetsau(T);
+    cout << "\n\nGia tri bieu thuc:\n";
+    cout << tinh(T);
+    return 0;
+}
+</pre>
+
+<h2>Bài 2: Danh sách liên kết</h2>
+<pre>
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+using namespace std;
+
+typedef struct Nt{
+    int ma;
+    string ten;
+    double gia;
+    Nt * lk;
+} nut;
+
+typedef nut * ds;
+ds khoitao(){
+    return NULL;
+}
+void taonut(ds &p, int x, string y, double z){
+    p = new nut;
+    p->ma = x;
+    p->ten = y;
+    p->gia = z;
+    p->lk = NULL;	
+}
+void themdau(ds &l, int x, string y, double z){
+    ds t;
+    taonut(t, x, y, z);
+    t->lk = l;
+    l = t;
+}
+void themcuoi(ds &l, int x, string y, double z){
+    ds t;
+    taonut(t, x, y, z);
+    if(l == NULL){
+        l = t;
+    } else {
+        ds p = l;
+        while(p->lk != NULL)
+            p = p->lk;
+        p->lk = t;
+    }
+}
+ds timmin(ds l){
+    if(l == NULL) return NULL;
+    ds min = l;
+    ds p = l->lk;
+    while(p != NULL){
+        if(p->gia < min->gia){
+            min = p;
+        }
+        p = p->lk;
+    }
+    return min;
+}
+ds ngatnut(ds &l){
+    if(l == NULL) return NULL;
+
+    ds min = timmin(l);
+    if(min == l){
+        l = l->lk;
+        min->lk = NULL;
+        return min;
+    }
+    ds p = l;
+    while(p->lk != min){
+        p = p->lk;
+    }
+    p->lk = min->lk;
+    min->lk = NULL;
+    return min;
+}
+ds sapxep(ds &l){
+    ds kq = NULL;
+    while(l != NULL){
+        ds t = ngatnut(l);
+
+        if(kq == NULL){
+            kq = t;
+        } else {
+            ds p = kq;
+            while(p->lk != NULL) 
+			p = p->lk;
+            p->lk = t;
+        }
+    }
+    return kq;
+}
+ds tron2ds(ds l, ds q){
+    ds kq = NULL, 
+	cuoi = NULL;
+    while(l != NULL && q != NULL){
+        ds t;
+        if(l->gia < q->gia){
+            t = l;
+            l = l->lk;
+        } else {
+            t = q;
+            q = q->lk;
+        }
+        t->lk = NULL;
+        if(kq == NULL){
+            kq = cuoi = t;
+        } else {
+            cuoi->lk = t;
+            cuoi = t;
+        }
+    }
+    if(l != NULL) cuoi->lk = l;
+    if(q != NULL) cuoi->lk = q;
+    return kq;
+}
+void inds(ds l){
+    ds p = l;
+    while(p != NULL){
+        cout << p->ma << " - " << p->ten << " - " << p->gia << endl;
+        p = p->lk;
+    }
+}
+int main(){
+	int x;
+	string y;
+	double z;
+    int n = 2;
+    ds l = khoitao();
+    ds q = khoitao();
+    cout<<"ds1\n";
+    for(int i = 0; i < n; i++){
+        cin >> x;
+        cin.ignore();
+        getline(cin,y);
+        cin >> z;
+        themdau(l,x,y,z);
+    }
+    cout<<"ds2\n";
+    for(int i = 0; i < n; i++){
+        cin >> x;
+        cin.ignore();
+        getline(cin,y);
+        cin >> z;
+        themcuoi(q,x,y,z);
+    }
+    cout << "\nDanh sach ban dau1:\n";
+    inds(l);
+        cout << "\nDanh sach ban dau2:\n";
+    inds(q);
+    l = sapxep(l);
+    cout << "\nSau khi sap xep1 :\n";
+    inds(l);
+    q = sapxep(q);
+    cout << "\nSau khi sap xep2 :\n";
+    inds(q);
+    ds lq = tron2ds(l,q);
+    cout << "\n2ds Sau khi sap xep :\n";
+    inds(lq);
+}
+</pre>
+
+</body>
+</html>
+```
