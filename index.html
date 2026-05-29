@@ -502,7 +502,13 @@ const fns1 = [
     taocay(L->LKP, S, 2*i+2, n);
 }`,
     congdung: "Xây dựng cây nhị phân từ mảng lưu theo thứ tự cấp độ (level-order). Node tại vị trí <code>i</code> sẽ có con trái ở <code>2i+1</code> và con phải ở <code>2i+2</code> — đây là quy tắc chuẩn của cây nhị phân lưu mảng.",
-    giaithich: `Hàm nhận tham chiếu <code>&L</code> để gán trực tiếp vào con trỏ của nút cha mà không cần trả về. Điều kiện dừng <code>i >= n</code> để không vượt mảng, còn <code>S[i] == "a"</code> là ký hiệu đánh dấu node rỗng (NULL) trong mảng đầu vào — kỹ thuật này giúp biểu diễn cây không đầy đủ bằng mảng phẳng.`
+    giaithich: `<strong>void taocay(cay &L, string S[], int i, int n)</strong> — nhận <code>&L</code> là tham chiếu đến con trỏ, cho phép hàm ghi trực tiếp vào con trỏ của node cha; <code>S[]</code> là mảng dữ liệu; <code>i</code> là vị trí hiện tại; <code>n</code> là tổng số phần tử.<br><br>
+<strong>if (i >= n || S[i] == "a") return;</strong> — điều kiện dừng đệ quy: nếu vị trí <code>i</code> vượt ra ngoài mảng (<code>i >= n</code>) hoặc ô đó là ký hiệu rỗng <code>"a"</code>, thì không tạo node → hàm kết thúc, <code>L</code> vẫn là NULL.<br><br>
+<strong>L = new nut;</strong> — cấp phát bộ nhớ động cho một node mới, gán địa chỉ vào <code>L</code>.<br><br>
+<strong>L->ND = S[i];</strong> — gán dữ liệu của node là phần tử tại vị trí <code>i</code> trong mảng.<br><br>
+<strong>L->LKT = NULL; L->LKP = NULL;</strong> — khởi tạo 2 con trỏ con trái và phải bằng NULL, tránh trỏ vào vùng rác.<br><br>
+<strong>taocay(L->LKT, S, 2*i+1, n);</strong> — đệ quy tạo cây con trái, node con trái trong mảng luôn ở vị trí <code>2i+1</code>.<br><br>
+<strong>taocay(L->LKP, S, 2*i+2, n);</strong> — đệ quy tạo cây con phải, node con phải trong mảng luôn ở vị trí <code>2i+2</code>.`
   },
   {
     name: "duyettruoc",
@@ -516,7 +522,10 @@ const fns1 = [
     }
 }`,
     congdung: "In cây theo thứ tự tiền thứ tự (Pre-order): <strong>Node → Trái → Phải</strong>. Kết quả là dạng <em>prefix</em> của biểu thức (ký pháp Ba Lan), ví dụ <code>- + 3 / 8 2 * 5 6</code>.",
-    giaithich: `In <code>L->ND</code> trước rồi mới đệ quy xuống con trái, sau đó con phải. Đây là cách duyệt tự nhiên nhất để <strong>sao chép hoặc serialize cây</strong> — khi đọc lại prefix notation ta có thể tái tạo lại cây y hệt.`
+    giaithich: `<strong>if (L != NULL)</strong> — kiểm tra node hiện tại có tồn tại không; nếu NULL thì không làm gì, đây là điều kiện dừng đệ quy.<br><br>
+<strong>cout &lt;&lt; L->ND &lt;&lt; " ";</strong> — in dữ liệu của node <strong>hiện tại trước</strong> (đây là "N" trong NLR — Node trước).<br><br>
+<strong>duyettruoc(L->LKT);</strong> — đệ quy sang cây con <strong>trái</strong> (L trong NLR).<br><br>
+<strong>duyettruoc(L->LKP);</strong> — sau khi cây con trái xong, đệ quy sang cây con <strong>phải</strong> (R trong NLR). Thứ tự: in node → trái → phải.`
   },
   {
     name: "duyetgiua",
@@ -530,7 +539,10 @@ const fns1 = [
     }
 }`,
     congdung: "In cây theo thứ tự trung thứ tự (In-order): <strong>Trái → Node → Phải</strong>. Với cây biểu thức, kết quả cho ra dạng <em>infix</em> — biểu thức toán học bình thường như <code>3 + 8 / 2 - 5 * 6</code>.",
-    giaithich: `Đệ quy xuống con trái hết rồi mới in node hiện tại, rồi sang con phải. Với <strong>cây tìm kiếm nhị phân (BST)</strong>, duyệt trung thứ tự luôn cho ra dãy <strong>tăng dần</strong> — đây là tính chất rất quan trọng.`
+    giaithich: `<strong>if (L != NULL)</strong> — điều kiện dừng đệ quy: không làm gì nếu node rỗng.<br><br>
+<strong>duyetgiua(L->LKT);</strong> — đệ quy sang cây con <strong>trái trước</strong> (L trong LNR), đi sâu xuống tận lá trái nhất trước khi in bất cứ gì.<br><br>
+<strong>cout &lt;&lt; L->ND &lt;&lt; " ";</strong> — sau khi cây con trái đã xong toàn bộ, mới in node <strong>hiện tại</strong> (N trong LNR).<br><br>
+<strong>duyetgiua(L->LKP);</strong> — cuối cùng đệ quy sang cây con <strong>phải</strong> (R trong LNR). Thứ tự: trái → in node → phải.`
   },
   {
     name: "duyetsau",
@@ -544,7 +556,10 @@ const fns1 = [
     }
 }`,
     congdung: "In cây theo thứ tự hậu thứ tự (Post-order): <strong>Trái → Phải → Node</strong>. Kết quả là dạng <em>postfix</em> (ký pháp nghịch Ba Lan), ví dụ <code>3 8 2 / + 5 6 * -</code> — dạng máy tính stack dùng để tính toán.",
-    giaithich: `In node <strong>sau cùng</strong>, sau khi đã xử lý toàn bộ cây con. Dùng trong bài toán <strong>giải phóng bộ nhớ</strong> (xóa cây) — phải xóa lá trước, node cha sau; nếu xóa node cha trước thì mất pointer đến con, bộ nhớ bị leak.`
+    giaithich: `<strong>if (L != NULL)</strong> — điều kiện dừng đệ quy: không làm gì nếu node rỗng.<br><br>
+<strong>duyetsau(L->LKT);</strong> — đệ quy sang cây con <strong>trái</strong> trước (L trong LRN).<br><br>
+<strong>duyetsau(L->LKP);</strong> — tiếp theo đệ quy sang cây con <strong>phải</strong> (R trong LRN).<br><br>
+<strong>cout &lt;&lt; L->ND &lt;&lt; " ";</strong> — chỉ in node <strong>sau cùng</strong>, khi cả hai cây con đã xử lý xong (N trong LRN). Thứ tự: trái → phải → in node. Với cây biểu thức, node nào in sau thì tính sau — đúng với thứ tự tính toán bottom-up.`
   },
   {
     name: "laToanTu",
@@ -555,7 +570,8 @@ const fns1 = [
            s == "*" || s == "/";
 }`,
     congdung: "Hàm helper phân biệt node toán tử <code>+−×÷</code> với node lá (toán hạng số). Được dùng trong hàm <code>tinh()</code> để quyết định nên tính toán hay chuyển thành số.",
-    giaithich: `Tách thành hàm riêng thay vì viết inline vì <strong>nguyên tắc Don't Repeat Yourself</strong> — logic kiểm tra toán tử dùng ở nhiều chỗ. Nếu sau này thêm toán tử mới (vd <code>%</code>) chỉ cần sửa một chỗ duy nhất.`
+    giaithich: `<strong>bool laToanTu(string s)</strong> — nhận vào một string, trả về <code>true</code> hoặc <code>false</code>.<br><br>
+<strong>return s == "+" || s == "-" || s == "*" || s == "/";</strong> — so sánh <code>s</code> lần lượt với 4 toán tử; nếu khớp bất kỳ toán tử nào thì trả về <code>true</code>, không khớp cái nào thì trả về <code>false</code> (node đó là toán hạng số). Dùng <code>||</code> (OR) nên chỉ cần 1 điều kiện đúng là đủ.`
   },
   {
     name: "tinh",
@@ -574,7 +590,15 @@ const fns1 = [
     return 0;
 }`,
     congdung: "Tính giá trị số học của toàn bộ biểu thức lưu trong cây. Đây là hàm cốt lõi của bài — kết hợp đệ quy hậu thứ tự với logic tính toán để duyệt từ lá lên gốc.",
-    giaithich: `Node lá là số → dùng <code>atof()</code> chuyển string thành double. Node nhánh là toán tử → đệ quy tính giá trị 2 nhánh con trước, rồi áp toán tử. Đây là ứng dụng cổ điển của <strong>đệ quy bottom-up</strong>: tính từ dưới lên, kết quả nhỏ ghép thành kết quả lớn.`
+    giaithich: `<strong>if (L == NULL) return 0;</strong> — nếu node không tồn tại, trả về 0, đây là điều kiện dừng đệ quy an toàn.<br><br>
+<strong>if (!laToanTu(L->ND)) return atof(L->ND.c_str());</strong> — nếu node <strong>không phải toán tử</strong> (tức là số), dùng <code>atof()</code> chuyển string sang double rồi trả về ngay. <code>c_str()</code> chuyển string C++ thành C-string để <code>atof()</code> đọc được.<br><br>
+<strong>double a = tinh(L->LKT);</strong> — đệ quy tính giá trị toàn bộ cây con <strong>trái</strong>, lưu vào <code>a</code>.<br><br>
+<strong>double b = tinh(L->LKP);</strong> — đệ quy tính giá trị toàn bộ cây con <strong>phải</strong>, lưu vào <code>b</code>.<br><br>
+<strong>if (L->ND == "+") return a + b;</strong> — nếu node hiện tại là dấu <code>+</code>, trả về tổng.<br><br>
+<strong>if (L->ND == "-") return a - b;</strong> — nếu là dấu <code>-</code>, trả về hiệu (trái trừ phải).<br><br>
+<strong>if (L->ND == "*") return a * b;</strong> — nếu là dấu <code>*</code>, trả về tích.<br><br>
+<strong>if (L->ND == "/") return a / b;</strong> — nếu là dấu <code>/</code>, trả về thương.<br><br>
+<strong>return 0;</strong> — dòng phòng thủ: nếu toán tử không hợp lệ, trả về 0 để tránh lỗi biên dịch (hàm phải có return ở mọi nhánh).`
   },
   {
     name: "main",
@@ -599,7 +623,15 @@ const fns1 = [
     return 0;
 }`,
     congdung: "Điểm vào chương trình. Khai báo mảng biểu thức dưới dạng level-order, gọi <code>taocay()</code> để dựng cây, sau đó gọi lần lượt 3 kiểu duyệt và tính giá trị.",
-    giaithich: `Mảng <code>S[]</code> biểu diễn cây theo thứ tự cấp độ — index <code>0</code> là gốc. Ký hiệu <code>"a"</code> ở vị trí 7, 8 đánh dấu node NULL (node <code>"3"</code> không có con). Cây biểu diễn biểu thức <strong>(3 + 8/2) - (5 * 6)</strong>.`
+    giaithich: `<strong>cay T;</strong> — khai báo con trỏ đầu cây (chưa khởi tạo).<br><br>
+<strong>string S[] = {...};</strong> — mảng biểu diễn cây theo thứ tự cấp độ (level-order): index 0 là gốc, index <code>i</code> có con trái <code>2i+1</code> và con phải <code>2i+2</code>. Ký tự <code>"a"</code> đánh dấu node NULL.<br><br>
+<strong>int n = 11;</strong> — số phần tử trong mảng, dùng làm giới hạn khi đệ quy.<br><br>
+<strong>taocay(T, S, 0, n);</strong> — gọi tạo cây bắt đầu từ index 0 (gốc).<br><br>
+<strong>cout &lt;&lt; "Duyet truoc:\\n"; duyettruoc(T);</strong> — in tiêu đề rồi gọi duyệt tiền thứ tự (NLR).<br><br>
+<strong>cout &lt;&lt; "\\n\\nDuyet giua:\\n"; duyetgiua(T);</strong> — in tiêu đề rồi gọi duyệt trung thứ tự (LNR).<br><br>
+<strong>cout &lt;&lt; "\\n\\nDuyet sau:\\n"; duyetsau(T);</strong> — in tiêu đề rồi gọi duyệt hậu thứ tự (LRN).<br><br>
+<strong>cout &lt;&lt; "\\n\\nGia tri bieu thuc:\\n" &lt;&lt; tinh(T);</strong> — in kết quả tính toán của toàn bộ biểu thức.<br><br>
+<strong>return 0;</strong> — chương trình kết thúc bình thường.`
   }
 ];
 
@@ -612,7 +644,8 @@ const fns2 = [
     return NULL;
 }`,
     congdung: "Trả về một danh sách liên kết rỗng. Đây là bước bắt buộc để đảm bảo con trỏ đầu danh sách không trỏ vào vùng nhớ ngẫu nhiên.",
-    giaithich: `Tuy đơn giản nhưng <strong>không nên bỏ qua</strong>. Nếu khai báo <code>ds l;</code> mà không khởi tạo, con trỏ <code>l</code> chứa giá trị rác — gọi <code>l->lk</code> ngay sẽ crash. Đặt thành hàm riêng giúp code rõ ý định hơn.`
+    giaithich: `<strong>ds khoitao()</strong> — hàm không có tham số, kiểu trả về là <code>ds</code> (tức là <code>nut*</code>).<br><br>
+<strong>return NULL;</strong> — trả về NULL, nghĩa là danh sách rỗng, con trỏ đầu không trỏ vào đâu cả. Nếu khai báo <code>ds l;</code> mà không gọi <code>khoitao()</code>, <code>l</code> sẽ chứa giá trị rác — truy cập <code>l->lk</code> sẽ crash ngay.`
   },
   {
     name: "taonut",
@@ -626,7 +659,12 @@ const fns2 = [
     p->lk = NULL;
 }`,
     congdung: "Cấp phát bộ nhớ động cho một nút mới và gán đầy đủ dữ liệu gồm mã, tên và giá. Luôn set <code>lk = NULL</code> ngay khi tạo.",
-    giaithich: `Tham chiếu <code>&p</code> để hàm ghi trực tiếp vào con trỏ của người gọi. <code>p->lk = NULL</code> ngay từ đầu là thói quen tốt — tránh tình huống nút mới vô tình trỏ vào vùng nhớ cũ gây crash hoặc lặp vô tận khi duyệt.`
+    giaithich: `<strong>void taonut(ds &p, int x, string y, double z)</strong> — <code>&p</code> là tham chiếu đến con trỏ, cho phép hàm ghi địa chỉ node mới trực tiếp vào biến của người gọi.<br><br>
+<strong>p = new nut;</strong> — cấp phát bộ nhớ động cho một node mới trên heap, lưu địa chỉ vào <code>p</code>.<br><br>
+<strong>p->ma = x;</strong> — gán mã sản phẩm.<br><br>
+<strong>p->ten = y;</strong> — gán tên sản phẩm.<br><br>
+<strong>p->gia = z;</strong> — gán giá sản phẩm.<br><br>
+<strong>p->lk = NULL;</strong> — đặt liên kết về NULL ngay từ đầu; nếu bỏ dòng này, con trỏ <code>lk</code> trỏ vào vùng rác — duyệt danh sách sẽ chạy bừa và crash.`
   },
   {
     name: "themdau",
@@ -639,7 +677,10 @@ const fns2 = [
     l = t;
 }`,
     congdung: "Chèn nút mới vào đầu danh sách với độ phức tạp <strong>O(1)</strong> — không cần duyệt toàn bộ danh sách. Nút mới trở thành head mới.",
-    giaithich: `Thứ tự 2 dòng cuối <strong>không được đảo</strong>: phải <code>t->lk = l</code> trước (nút mới trỏ vào head cũ), rồi mới <code>l = t</code> (cập nhật head). Đảo ngược sẽ mất toàn bộ danh sách cũ vì <code>l</code> bị ghi đè trước.`
+    giaithich: `<strong>ds t;</strong> — khai báo con trỏ tạm <code>t</code> để chứa node mới sắp tạo.<br><br>
+<strong>taonut(t, x, y, z);</strong> — gọi hàm tạo node, sau dòng này <code>t</code> trỏ đến node mới đã có đầy đủ dữ liệu.<br><br>
+<strong>t->lk = l;</strong> — node mới trỏ vào <strong>head cũ</strong> (nối đuôi vào danh sách hiện có). Dòng này phải làm <strong>trước</strong>.<br><br>
+<strong>l = t;</strong> — cập nhật head, node mới trở thành đầu danh sách. Nếu đảo 2 dòng này (<code>l = t</code> trước), <code>l</code> bị ghi đè mất địa chỉ head cũ → toàn bộ danh sách phía sau bị mất.`
   },
   {
     name: "themcuoi",
@@ -655,7 +696,11 @@ const fns2 = [
     }
 }`,
     congdung: "Nối nút mới vào cuối danh sách, giữ nguyên thứ tự các nút đã có. Độ phức tạp <strong>O(n)</strong> vì phải duyệt tới nút cuối.",
-    giaithich: `Xử lý riêng trường hợp danh sách rỗng (<code>l == NULL</code>) — nếu không check sẽ bị lỗi khi truy cập <code>p->lk</code>. Vòng <code>while</code> dừng ở nút cuối cùng (nút có <code>lk == NULL</code>), rồi gán <code>p->lk = t</code> để nối.`
+    giaithich: `<strong>ds t; taonut(t, x, y, z);</strong> — tạo node mới, <code>t</code> trỏ đến node đó.<br><br>
+<strong>if(l == NULL){ l = t; }</strong> — nếu danh sách đang rỗng, node mới chính là head luôn. Phải check trường hợp này trước, nếu không dòng <code>p->lk</code> bên dưới sẽ crash vì <code>p</code> là NULL.<br><br>
+<strong>else { ds p = l;</strong> — danh sách có sẵn: dùng con trỏ tạm <code>p</code> để duyệt, không dùng trực tiếp <code>l</code> để tránh mất địa chỉ head.<br><br>
+<strong>while(p->lk != NULL) p = p->lk;</strong> — duyệt đến node cuối cùng (node mà <code>lk</code> đang là NULL).<br><br>
+<strong>p->lk = t; }</strong> — nối node mới vào sau node cuối, hoàn thành việc thêm vào cuối.`
   },
   {
     name: "timmin",
@@ -672,7 +717,13 @@ const fns2 = [
     return min;
 }`,
     congdung: "Duyệt toàn bộ danh sách và trả về <strong>con trỏ</strong> đến nút có trường <code>gia</code> nhỏ nhất. Kết quả là địa chỉ thật của nút đó trong danh sách (không phải bản sao).",
-    giaithich: `Trả về con trỏ thay vì giá trị để hàm <code>ngatnut()</code> có thể định vị đúng vị trí nút đó và thực hiện tháo ra. Khởi tạo <code>min = l</code> (giả sử nút đầu nhỏ nhất) rồi so sánh dần — kỹ thuật standard cho bài toán tìm min trong danh sách.`
+    giaithich: `<strong>if(l == NULL) return NULL;</strong> — nếu danh sách rỗng, không có min, trả về NULL ngay.<br><br>
+<strong>ds min = l;</strong> — giả sử node đầu tiên là nhỏ nhất (kỹ thuật giả định ban đầu chuẩn).<br><br>
+<strong>ds p = l->lk;</strong> — con trỏ duyệt bắt đầu từ node <strong>thứ 2</strong> (node đầu đã gán cho <code>min</code> rồi, không cần so sánh lại).<br><br>
+<strong>while(p != NULL)</strong> — duyệt cho đến hết danh sách.<br><br>
+<strong>if(p->gia &lt; min->gia) min = p;</strong> — nếu node hiện tại có giá nhỏ hơn min hiện tại, cập nhật <code>min</code> trỏ sang node đó. Lưu con trỏ chứ không lưu giá trị, để sau dùng được trong <code>ngatnut()</code>.<br><br>
+<strong>p = p->lk;</strong> — tiến sang node tiếp theo.<br><br>
+<strong>return min;</strong> — trả về con trỏ đến node có giá nhỏ nhất.`
   },
   {
     name: "ngatnut",
@@ -693,7 +744,14 @@ const fns2 = [
     return min;
 }`,
     congdung: "Loại bỏ nút nhỏ nhất khỏi danh sách và trả nó về để dùng tiếp trong thuật toán sắp xếp. Là bước cốt lõi của <strong>selection sort</strong> trên danh sách liên kết.",
-    giaithich: `Xử lý 2 trường hợp: nút min là head (chỉ cần dịch head) hoặc nút min ở giữa/cuối (cần tìm nút trước nó để vá lại liên kết). Lệnh <code>min->lk = NULL</code> rất quan trọng — cô lập nút tháo ra, tránh nó còn kéo theo phần sau.`
+    giaithich: `<strong>if(l == NULL) return NULL;</strong> — danh sách rỗng thì không có gì để tách, trả về NULL.<br><br>
+<strong>ds min = timmin(l);</strong> — tìm node có giá nhỏ nhất, lấy về con trỏ trỏ đến chính node đó.<br><br>
+<strong>if(min == l){</strong> — kiểm tra xem node min có phải là <strong>head</strong> không, vì xử lý head khác với xử lý giữa/cuối.<br><br>
+<strong>l = l->lk;</strong> — dịch head sang node tiếp theo (bỏ node đầu ra khỏi danh sách).<br><br>
+<strong>min->lk = NULL; return min;</strong> — cô lập node vừa tháo (đặt <code>lk = NULL</code> tránh kéo theo phần còn lại), rồi trả về.<br><br>
+<strong>ds p = l; while(p->lk != min) p = p->lk;</strong> — node min ở giữa hoặc cuối: duyệt để tìm node <strong>ngay trước</strong> min (node có <code>lk</code> trỏ đúng vào <code>min</code>).<br><br>
+<strong>p->lk = min->lk;</strong> — vá lại liên kết: node trước min bây giờ trỏ vào node sau min, bỏ qua <code>min</code>.<br><br>
+<strong>min->lk = NULL; return min;</strong> — cô lập min và trả về.`
   },
   {
     name: "sapxep",
@@ -713,7 +771,13 @@ const fns2 = [
     return kq;
 }`,
     congdung: "Sắp xếp danh sách liên kết theo giá tăng dần bằng thuật toán <strong>selection sort</strong>. Mỗi lần lấy nút nhỏ nhất từ danh sách gốc rồi nối vào cuối danh sách kết quả.",
-    giaithich: `Danh sách <code>l</code> ban đầu bị <strong>phá hủy hoàn toàn</strong> (rút dần từng nút) trong quá trình sắp xếp, danh sách mới xây dựng trong <code>kq</code>. Đây là in-place selection sort trên linked list — không dùng mảng phụ, chỉ thao tác lại con trỏ. Độ phức tạp <strong>O(n²)</strong>.`
+    giaithich: `<strong>ds kq = NULL;</strong> — khởi tạo danh sách kết quả rỗng; sẽ xây dựng danh sách sắp xếp vào đây.<br><br>
+<strong>while(l != NULL){</strong> — lặp cho đến khi danh sách gốc <code>l</code> hết node (mỗi vòng lấy đi 1 node).<br><br>
+<strong>ds t = ngatnut(l);</strong> — rút node nhỏ nhất ra khỏi <code>l</code>, lưu vào <code>t</code>. Sau lệnh này, node đó đã bị tháo khỏi <code>l</code>.<br><br>
+<strong>if(kq == NULL){ kq = t; }</strong> — nếu danh sách kết quả còn rỗng, node đầu tiên chính là head.<br><br>
+<strong>else { ds p = kq; while(p->lk != NULL) p = p->lk;</strong> — nếu kq đã có node: duyệt đến cuối danh sách kq.<br><br>
+<strong>p->lk = t; }</strong> — nối node vừa lấy vào cuối kq (vì mỗi lần đều lấy min nên thứ tự tự động tăng dần).<br><br>
+<strong>return kq;</strong> — trả về danh sách đã sắp xếp. Lúc này <code>l</code> đã rỗng hoàn toàn.`
   },
   {
     name: "tron2ds",
@@ -737,7 +801,15 @@ const fns2 = [
     return kq;
 }`,
     congdung: "Gộp 2 danh sách <strong>đã sắp xếp</strong> thành 1 danh sách sắp xếp mới với độ phức tạp <strong>O(n+m)</strong>. Đây là bước merge trong thuật toán Merge Sort.",
-    giaithich: `Dùng con trỏ <code>cuoi</code> để thêm vào cuối <strong>O(1)</strong> (không phải duyệt lại). So sánh giá 2 đầu danh sách, chọn nút nhỏ hơn nối vào <code>kq</code>. Khi 1 danh sách hết trước, nối phần còn lại của danh sách kia bằng 2 dòng cuối — không cần copy tiếp từng nút.`
+    giaithich: `<strong>ds kq = NULL, cuoi = NULL;</strong> — <code>kq</code> là head của danh sách kết quả; <code>cuoi</code> luôn trỏ đến node cuối cùng để nối thêm nhanh O(1).<br><br>
+<strong>while(l != NULL &amp;&amp; q != NULL){</strong> — lặp khi cả 2 danh sách còn node để so sánh.<br><br>
+<strong>if(l->gia &lt; q->gia){ t = l; l = l->lk; }</strong> — node của <code>l</code> nhỏ hơn: chọn <code>t = l</code>, dịch <code>l</code> sang node kế tiếp.<br><br>
+<strong>else { t = q; q = q->lk; }</strong> — ngược lại: chọn <code>t = q</code>, dịch <code>q</code> sang node kế tiếp.<br><br>
+<strong>t->lk = NULL;</strong> — cô lập node <code>t</code> trước khi nối vào kq, tránh kéo theo đuôi cũ.<br><br>
+<strong>if(kq == NULL){ kq = cuoi = t; }</strong> — nếu kq còn rỗng, node đầu tiên vừa là head vừa là cuối.<br><br>
+<strong>else { cuoi->lk = t; cuoi = t; }</strong> — nối <code>t</code> vào sau node cuối, rồi cập nhật <code>cuoi</code> trỏ sang <code>t</code> (node cuối mới).<br><br>
+<strong>if(l != NULL) cuoi->lk = l;</strong> — sau vòng lặp: nếu <code>l</code> còn thừa, nối toàn bộ phần thừa vào đuôi kq một lần (không cần copy từng node).<br><br>
+<strong>if(q != NULL) cuoi->lk = q;</strong> — tương tự nếu <code>q</code> còn thừa.`
   },
   {
     name: "inds",
@@ -753,7 +825,10 @@ const fns2 = [
     }
 }`,
     congdung: "Duyệt và in tất cả nút của danh sách theo thứ tự từ đầu đến cuối. Mỗi nút in trên một dòng theo format <code>ma - ten - gia</code>.",
-    giaithich: `Dùng con trỏ tạm <code>p</code> thay vì duyệt trực tiếp qua <code>l</code> để <strong>không làm mất con trỏ đầu danh sách</strong>. Nếu viết <code>while(l != NULL){ ...; l = l->lk; }</code> thì sau khi in xong, <code>l</code> đã trỏ ra ngoài — không thể dùng lại.`
+    giaithich: `<strong>ds p = l;</strong> — tạo con trỏ tạm <code>p</code> sao chép địa chỉ head; duyệt qua <code>p</code> thay vì <code>l</code> trực tiếp để <strong>không làm mất head</strong> của danh sách.<br><br>
+<strong>while(p != NULL){</strong> — lặp cho đến khi đi qua hết tất cả node.<br><br>
+<strong>cout &lt;&lt; p->ma &lt;&lt; " - " &lt;&lt; p->ten &lt;&lt; " - " &lt;&lt; p->gia &lt;&lt; endl;</strong> — in 3 trường của node hiện tại theo format <code>ma - ten - gia</code>, xuống dòng sau mỗi node.<br><br>
+<strong>p = p->lk;</strong> — tiến <code>p</code> sang node tiếp theo; khi đến node cuối, <code>p->lk = NULL</code>, vòng lặp dừng.`
   }
 ];
 
