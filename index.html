@@ -1,177 +1,685 @@
-```html
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <title>Hiển thị Code C++</title>
-    <style>
-        body {
-            font-family: Consolas, monospace;
-            background-color: #1e1e1e;
-            color: #dcdcdc;
-            padding: 20px;
-        }
-        h2 {
-            color: #4fc3f7;
-        }
-        pre {
-            background-color: #2d2d2d;
-            padding: 15px;
-            border-radius: 8px;
-            overflow-x: auto;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C++ Code Viewer</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Be+Vietnam+Pro:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2128;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #e6edf3;
+    --text2: #8b949e;
+    --text3: #6e7681;
+    --blue: #58a6ff;
+    --blue-dim: rgba(88,166,255,0.12);
+    --blue-border: rgba(88,166,255,0.3);
+    --teal: #39d353;
+    --teal-dim: rgba(57,211,83,0.1);
+    --teal-border: rgba(57,211,83,0.3);
+    --orange: #ffa657;
+    --orange-dim: rgba(255,166,87,0.1);
+    --purple: #bc8cff;
+    --purple-dim: rgba(188,140,255,0.1);
+    --red: #ff7b72;
+    --keyword: #ff7b72;
+    --type: #79c0ff;
+    --func: #d2a8ff;
+    --string: #a5d6ff;
+    --comment: #8b949e;
+    --number: #79c0ff;
+    --op: #ff7b72;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Be Vietnam Pro', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  /* ── LAYOUT ── */
+  .header {
+    border-bottom: 1px solid var(--border);
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--surface);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  .header-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .header h1 { font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: -0.01em; }
+  .header-sub { font-size: 12px; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
+  .tabs-bar {
+    display: flex;
+    gap: 4px;
+    padding: 12px 32px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .tab {
+    padding: 6px 16px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    background: transparent;
+    font-family: 'Be Vietnam Pro', sans-serif;
+    transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); background: var(--surface2); }
+  .tab.active { color: var(--blue); background: var(--blue-dim); border-color: var(--blue-border); }
+  .main { max-width: 1100px; margin: 0 auto; padding: 24px 32px 80px; }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ── SECTION HEADERS ── */
+  .section-hd {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    margin-top: 32px;
+  }
+  .section-hd:first-child { margin-top: 0; }
+  .section-hd h2 { font-size: 16px; font-weight: 600; color: var(--text); }
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.02em;
+  }
+  .badge-blue { background: var(--blue-dim); color: var(--blue); border: 1px solid var(--blue-border); }
+  .badge-teal { background: var(--teal-dim); color: var(--teal); border: 1px solid var(--teal-border); }
+
+  /* ── CODE BLOCKS (overview) ── */
+  .code-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 28px;
+  }
+  .code-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .code-card-header .dots { display: flex; gap: 6px; }
+  .code-card-header .dots span { width: 12px; height: 12px; border-radius: 50%; }
+  .dot-r { background: #ff5f57; }
+  .dot-y { background: #febc2e; }
+  .dot-g { background: #28c840; }
+  .code-card-header .filename { font-size: 12px; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
+  .copy-btn {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 12px; color: var(--text2);
+    background: transparent; border: 1px solid var(--border2);
+    border-radius: 5px; padding: 4px 10px; cursor: pointer;
+    font-family: 'Be Vietnam Pro', sans-serif;
+    transition: all 0.15s;
+  }
+  .copy-btn:hover { color: var(--text); border-color: var(--text2); }
+  .copy-btn svg { width: 13px; height: 13px; }
+  pre.code-body {
+    padding: 20px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: #c9d1d9;
+    background: transparent;
+    white-space: pre;
+  }
+
+  /* ── SYNTAX HIGHLIGHT ── */
+  .kw { color: var(--keyword); font-weight: 500; }
+  .ty { color: var(--type); }
+  .fn { color: var(--func); }
+  .st { color: var(--string); }
+  .cm { color: var(--comment); font-style: italic; }
+  .nm { color: var(--number); }
+  .op { color: var(--op); }
+  .pp { color: #ffa657; }
+
+  /* ── FUNCTION CARDS ── */
+  .fn-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .fn-chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .fn-chip:hover { border-color: var(--border2); background: var(--surface2); }
+  .fn-chip.open { border-color: var(--blue-border); background: var(--blue-dim); }
+  .fn-chip-name { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; font-weight: 700; color: var(--blue); margin-bottom: 3px; }
+  .fn-chip.teal .fn-chip-name { color: var(--teal); }
+  .fn-chip.open.teal { border-color: var(--teal-border); background: var(--teal-dim); }
+  .fn-chip-desc { font-size: 11px; color: var(--text2); line-height: 1.4; }
+
+  /* ── FUNCTION DETAIL PANEL ── */
+  .fn-panel {
+    display: none;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 8px;
+    margin-bottom: 16px;
+    animation: slideIn 0.18s ease;
+  }
+  .fn-panel.open { display: block; }
+  @keyframes slideIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+  .fn-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .fn-panel-name { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: var(--func); }
+  .fn-panel-body { display: grid; grid-template-columns: 1fr 1fr; }
+  @media (max-width: 700px) { .fn-panel-body { grid-template-columns: 1fr; } }
+  .fn-code-col { border-right: 1px solid var(--border); overflow: hidden; }
+  .fn-code-col pre {
+    padding: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+    color: #c9d1d9;
+    overflow-x: auto;
+    background: transparent;
+    white-space: pre;
+    height: 100%;
+  }
+  .fn-explain-col { padding: 16px 20px; }
+  .explain-block { margin-bottom: 16px; }
+  .explain-block:last-child { margin-bottom: 0; }
+  .explain-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text3);
+    margin-bottom: 6px;
+  }
+  .explain-text { font-size: 13px; color: var(--text2); line-height: 1.65; }
+  .explain-text strong { color: var(--text); font-weight: 600; }
+  .explain-text code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--orange);
+    background: var(--orange-dim);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+  .tag-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
+  .tag {
+    font-size: 10px; font-weight: 600;
+    padding: 2px 8px; border-radius: 20px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .tag-void { background: rgba(139,148,158,0.15); color: var(--text2); }
+  .tag-bool { background: var(--teal-dim); color: var(--teal); }
+  .tag-double { background: var(--purple-dim); color: var(--purple); }
+  .tag-ds { background: var(--blue-dim); color: var(--blue); }
+  .tag-rec { background: var(--orange-dim); color: var(--orange); }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  /* ── ACTIVE INDICATOR ── */
+  .fn-chip .arrow { font-size: 10px; color: var(--text3); float: right; margin-top: 2px; transition: transform 0.15s; }
+  .fn-chip.open .arrow { transform: rotate(90deg); color: var(--blue); }
+  .fn-chip.open.teal .arrow { color: var(--teal); }
+</style>
 </head>
 <body>
 
-<h2>Bài 1: Cây nhị phân biểu thức</h2>
-<pre>
-#include &lt;iostream&gt;
-#include &lt;string&gt;
-#include &lt;cstdlib&gt;
-using namespace std;
+<div class="header">
+  <div style="display:flex;gap:5px;align-items:center">
+    <div class="header-dot" style="background:#ff5f57"></div>
+    <div class="header-dot" style="background:#febc2e"></div>
+    <div class="header-dot" style="background:#28c840"></div>
+  </div>
+  <div>
+    <h1>C++ Code Viewer</h1>
+    <div class="header-sub">Cây nhị phân biểu thức &amp; Danh sách liên kết</div>
+  </div>
+</div>
 
-typedef struct N{
+<div class="tabs-bar">
+  <button class="tab active" onclick="switchView('full',this)">📄 Tổng quát</button>
+  <button class="tab" onclick="switchView('fn',this)">🧩 Theo hàm</button>
+</div>
+
+<div class="main">
+
+<!-- ═══════════════════════════ VIEW: TỔNG QUÁT ═══════════════════════════ -->
+<div id="view-full" class="view active">
+
+  <div class="section-hd">
+    <h2>Bài 1: Cây nhị phân biểu thức</h2>
+    <span class="badge badge-blue">expression_tree.cpp</span>
+  </div>
+  <div class="code-card">
+    <div class="code-card-header">
+      <div class="dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+      <span class="filename">expression_tree.cpp</span>
+      <button class="copy-btn" onclick="copyFull('code-full-1',this)">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"/><path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg>
+        Copy
+      </button>
+    </div>
+    <pre class="code-body" id="code-full-1"><span class="pp">#include</span> <span class="st">&lt;iostream&gt;</span>
+<span class="pp">#include</span> <span class="st">&lt;string&gt;</span>
+<span class="pp">#include</span> <span class="st">&lt;cstdlib&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">typedef struct</span> N{
     string ND;
     N *LKT;
     N *LKP;
 }nut;
+<span class="kw">typedef</span> nut* cay;
 
-typedef nut* cay;
-void taocay(cay &L,string S[],int i,int n){
-	if (i >= n||S[i] == "a")
-	return; 
+<span class="kw">void</span> <span class="fn">taocay</span>(cay &L, string S[], <span class="ty">int</span> i, <span class="ty">int</span> n){
+    <span class="kw">if</span> (i >= n || S[i] == <span class="st">"a"</span>) <span class="kw">return</span>;
+    L = <span class="kw">new</span> nut;
+    L->ND = S[i];
+    L->LKT = NULL;
+    L->LKP = NULL;
+    <span class="fn">taocay</span>(L->LKT, S, <span class="nm">2</span>*i+<span class="nm">1</span>, n);
+    <span class="fn">taocay</span>(L->LKP, S, <span class="nm">2</span>*i+<span class="nm">2</span>, n);
+}
+
+<span class="kw">void</span> <span class="fn">duyettruoc</span>(cay L) {
+    <span class="kw">if</span> (L != NULL) {
+        cout &lt;&lt; L->ND &lt;&lt; <span class="st">" "</span>;
+        <span class="fn">duyettruoc</span>(L->LKT);
+        <span class="fn">duyettruoc</span>(L->LKP);
+    }
+}
+<span class="kw">void</span> <span class="fn">duyetgiua</span>(cay L) {
+    <span class="kw">if</span> (L != NULL) {
+        <span class="fn">duyetgiua</span>(L->LKT);
+        cout &lt;&lt; L->ND &lt;&lt; <span class="st">" "</span>;
+        <span class="fn">duyetgiua</span>(L->LKP);
+    }
+}
+<span class="kw">void</span> <span class="fn">duyetsau</span>(cay L) {
+    <span class="kw">if</span> (L != NULL) {
+        <span class="fn">duyetsau</span>(L->LKT);
+        <span class="fn">duyetsau</span>(L->LKP);
+        cout &lt;&lt; L->ND &lt;&lt; <span class="st">" "</span>;
+    }
+}
+
+<span class="kw">bool</span> <span class="fn">laToanTu</span>(string s) {
+    <span class="kw">return</span> s == <span class="st">"+"</span> || s == <span class="st">"-"</span> || s == <span class="st">"*"</span> || s == <span class="st">"/"</span>;
+}
+
+<span class="ty">double</span> <span class="fn">tinh</span>(cay L) {
+    <span class="kw">if</span> (L == NULL) <span class="kw">return</span> <span class="nm">0</span>;
+    <span class="kw">if</span> (!<span class="fn">laToanTu</span>(L->ND)) <span class="kw">return</span> <span class="fn">atof</span>(L->ND.<span class="fn">c_str</span>());
+    <span class="ty">double</span> a = <span class="fn">tinh</span>(L->LKT);
+    <span class="ty">double</span> b = <span class="fn">tinh</span>(L->LKP);
+    <span class="kw">if</span> (L->ND == <span class="st">"+"</span>) <span class="kw">return</span> a + b;
+    <span class="kw">if</span> (L->ND == <span class="st">"-"</span>) <span class="kw">return</span> a - b;
+    <span class="kw">if</span> (L->ND == <span class="st">"*"</span>) <span class="kw">return</span> a * b;
+    <span class="kw">if</span> (L->ND == <span class="st">"/"</span>) <span class="kw">return</span> a / b;
+    <span class="kw">return</span> <span class="nm">0</span>;
+}
+
+<span class="ty">int</span> <span class="fn">main</span>() {
+    cay T;
+    string S[] = {<span class="st">"-"</span>,<span class="st">"+"</span>,<span class="st">"*"</span>,<span class="st">"3"</span>,<span class="st">"/"</span>,<span class="st">"5"</span>,<span class="st">"6"</span>,<span class="st">"a"</span>,<span class="st">"a"</span>,<span class="st">"8"</span>,<span class="st">"2"</span>};
+    <span class="ty">int</span> n = <span class="nm">11</span>;
+    <span class="fn">taocay</span>(T, S, <span class="nm">0</span>, n);
+    cout &lt;&lt; <span class="st">"Duyet truoc:\n"</span>; <span class="fn">duyettruoc</span>(T);
+    cout &lt;&lt; <span class="st">"\n\nDuyet giua:\n"</span>; <span class="fn">duyetgiua</span>(T);
+    cout &lt;&lt; <span class="st">"\n\nDuyet sau:\n"</span>; <span class="fn">duyetsau</span>(T);
+    cout &lt;&lt; <span class="st">"\n\nGia tri bieu thuc:\n"</span> &lt;&lt; <span class="fn">tinh</span>(T);
+    <span class="kw">return</span> <span class="nm">0</span>;
+}</pre>
+  </div>
+
+  <div class="section-hd">
+    <h2>Bài 2: Danh sách liên kết</h2>
+    <span class="badge badge-teal">linked_list.cpp</span>
+  </div>
+  <div class="code-card">
+    <div class="code-card-header">
+      <div class="dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+      <span class="filename">linked_list.cpp</span>
+      <button class="copy-btn" onclick="copyFull('code-full-2',this)">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"/><path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg>
+        Copy
+      </button>
+    </div>
+    <pre class="code-body" id="code-full-2"><span class="pp">#include</span> <span class="st">&lt;iostream&gt;</span>
+<span class="pp">#include</span> <span class="st">&lt;string&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">typedef struct</span> Nt{
+    <span class="ty">int</span> ma;
+    string ten;
+    <span class="ty">double</span> gia;
+    Nt * lk;
+} nut;
+<span class="kw">typedef</span> nut * ds;
+
+ds <span class="fn">khoitao</span>(){ <span class="kw">return</span> NULL; }
+
+<span class="kw">void</span> <span class="fn">taonut</span>(ds &p, <span class="ty">int</span> x, string y, <span class="ty">double</span> z){
+    p = <span class="kw">new</span> nut;
+    p->ma = x; p->ten = y; p->gia = z; p->lk = NULL;
+}
+<span class="kw">void</span> <span class="fn">themdau</span>(ds &l, <span class="ty">int</span> x, string y, <span class="ty">double</span> z){
+    ds t; <span class="fn">taonut</span>(t, x, y, z);
+    t->lk = l; l = t;
+}
+<span class="kw">void</span> <span class="fn">themcuoi</span>(ds &l, <span class="ty">int</span> x, string y, <span class="ty">double</span> z){
+    ds t; <span class="fn">taonut</span>(t, x, y, z);
+    <span class="kw">if</span>(l == NULL){ l = t; }
+    <span class="kw">else</span> {
+        ds p = l;
+        <span class="kw">while</span>(p->lk != NULL) p = p->lk;
+        p->lk = t;
+    }
+}
+ds <span class="fn">timmin</span>(ds l){
+    <span class="kw">if</span>(l == NULL) <span class="kw">return</span> NULL;
+    ds min = l; ds p = l->lk;
+    <span class="kw">while</span>(p != NULL){
+        <span class="kw">if</span>(p->gia &lt; min->gia) min = p;
+        p = p->lk;
+    }
+    <span class="kw">return</span> min;
+}
+ds <span class="fn">ngatnut</span>(ds &l){
+    <span class="kw">if</span>(l == NULL) <span class="kw">return</span> NULL;
+    ds min = <span class="fn">timmin</span>(l);
+    <span class="kw">if</span>(min == l){ l = l->lk; min->lk = NULL; <span class="kw">return</span> min; }
+    ds p = l;
+    <span class="kw">while</span>(p->lk != min) p = p->lk;
+    p->lk = min->lk; min->lk = NULL;
+    <span class="kw">return</span> min;
+}
+ds <span class="fn">sapxep</span>(ds &l){
+    ds kq = NULL;
+    <span class="kw">while</span>(l != NULL){
+        ds t = <span class="fn">ngatnut</span>(l);
+        <span class="kw">if</span>(kq == NULL){ kq = t; }
+        <span class="kw">else</span> {
+            ds p = kq;
+            <span class="kw">while</span>(p->lk != NULL) p = p->lk;
+            p->lk = t;
+        }
+    }
+    <span class="kw">return</span> kq;
+}
+ds <span class="fn">tron2ds</span>(ds l, ds q){
+    ds kq = NULL, cuoi = NULL;
+    <span class="kw">while</span>(l != NULL &amp;&amp; q != NULL){
+        ds t;
+        <span class="kw">if</span>(l->gia &lt; q->gia){ t = l; l = l->lk; }
+        <span class="kw">else</span> { t = q; q = q->lk; }
+        t->lk = NULL;
+        <span class="kw">if</span>(kq == NULL){ kq = cuoi = t; }
+        <span class="kw">else</span> { cuoi->lk = t; cuoi = t; }
+    }
+    <span class="kw">if</span>(l != NULL) cuoi->lk = l;
+    <span class="kw">if</span>(q != NULL) cuoi->lk = q;
+    <span class="kw">return</span> kq;
+}
+<span class="kw">void</span> <span class="fn">inds</span>(ds l){
+    ds p = l;
+    <span class="kw">while</span>(p != NULL){
+        cout &lt;&lt; p->ma &lt;&lt; <span class="st">" - "</span> &lt;&lt; p->ten &lt;&lt; <span class="st">" - "</span> &lt;&lt; p->gia &lt;&lt; endl;
+        p = p->lk;
+    }
+}</pre>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ VIEW: THEO HÀM ═══════════════════════════ -->
+<div id="view-fn" class="view">
+
+  <div class="section-hd" style="margin-top:0">
+    <h2>Bài 1: Cây nhị phân biểu thức</h2>
+    <span class="badge badge-blue">7 hàm</span>
+  </div>
+  <div id="fns-1"></div>
+
+  <div class="section-hd">
+    <h2>Bài 2: Danh sách liên kết</h2>
+    <span class="badge badge-teal">9 hàm</span>
+  </div>
+  <div id="fns-2"></div>
+
+</div>
+</div>
+
+<script>
+const fns1 = [
+  {
+    name: "taocay",
+    desc: "Tạo cây từ mảng string",
+    tags: ["void","đệ quy"],
+    code: `void taocay(cay &L, string S[], int i, int n){
+    if (i >= n || S[i] == "a") return; 
     L = new nut;
     L->ND = S[i];
     L->LKT = NULL;
     L->LKP = NULL;
-    taocay(L->LKT, S, 2 * i + 1, n);
-    taocay(L->LKP, S, 2 * i + 2, n);
-}
-void duyettruoc(cay L) {
+    taocay(L->LKT, S, 2*i+1, n);
+    taocay(L->LKP, S, 2*i+2, n);
+}`,
+    congdung: "Xây dựng cây nhị phân từ mảng lưu theo thứ tự cấp độ (level-order). Node tại vị trí <code>i</code> sẽ có con trái ở <code>2i+1</code> và con phải ở <code>2i+2</code> — đây là quy tắc chuẩn của cây nhị phân lưu mảng.",
+    giaithich: `Hàm nhận tham chiếu <code>&L</code> để gán trực tiếp vào con trỏ của nút cha mà không cần trả về. Điều kiện dừng <code>i >= n</code> để không vượt mảng, còn <code>S[i] == "a"</code> là ký hiệu đánh dấu node rỗng (NULL) trong mảng đầu vào — kỹ thuật này giúp biểu diễn cây không đầy đủ bằng mảng phẳng.`
+  },
+  {
+    name: "duyettruoc",
+    desc: "Duyệt tiền thứ tự — NLR",
+    tags: ["void","đệ quy"],
+    code: `void duyettruoc(cay L) {
     if (L != NULL) {
         cout << L->ND << " ";
         duyettruoc(L->LKT);
         duyettruoc(L->LKP);
     }
-}
-void duyetgiua(cay L) {
+}`,
+    congdung: "In cây theo thứ tự tiền thứ tự (Pre-order): <strong>Node → Trái → Phải</strong>. Kết quả là dạng <em>prefix</em> của biểu thức (ký pháp Ba Lan), ví dụ <code>- + 3 / 8 2 * 5 6</code>.",
+    giaithich: `In <code>L->ND</code> trước rồi mới đệ quy xuống con trái, sau đó con phải. Đây là cách duyệt tự nhiên nhất để <strong>sao chép hoặc serialize cây</strong> — khi đọc lại prefix notation ta có thể tái tạo lại cây y hệt.`
+  },
+  {
+    name: "duyetgiua",
+    desc: "Duyệt trung thứ tự — LNR",
+    tags: ["void","đệ quy"],
+    code: `void duyetgiua(cay L) {
     if (L != NULL) {
         duyetgiua(L->LKT);
         cout << L->ND << " ";
         duyetgiua(L->LKP);
     }
-}
-void duyetsau(cay L) {
+}`,
+    congdung: "In cây theo thứ tự trung thứ tự (In-order): <strong>Trái → Node → Phải</strong>. Với cây biểu thức, kết quả cho ra dạng <em>infix</em> — biểu thức toán học bình thường như <code>3 + 8 / 2 - 5 * 6</code>.",
+    giaithich: `Đệ quy xuống con trái hết rồi mới in node hiện tại, rồi sang con phải. Với <strong>cây tìm kiếm nhị phân (BST)</strong>, duyệt trung thứ tự luôn cho ra dãy <strong>tăng dần</strong> — đây là tính chất rất quan trọng.`
+  },
+  {
+    name: "duyetsau",
+    desc: "Duyệt hậu thứ tự — LRN",
+    tags: ["void","đệ quy"],
+    code: `void duyetsau(cay L) {
     if (L != NULL) {
         duyetsau(L->LKT);
         duyetsau(L->LKP);
         cout << L->ND << " ";
     }
-}
-bool laToanTu(string s) {
-    return s == "+" ||
-           s == "-" ||
-           s == "*" ||
-           s == "/";
-}
-double tinh(cay L) {
-	if (L == NULL) return 0;
-    if (!laToanTu(L->ND)) {
-    	return atof(L->ND.c_str());
-    }
+}`,
+    congdung: "In cây theo thứ tự hậu thứ tự (Post-order): <strong>Trái → Phải → Node</strong>. Kết quả là dạng <em>postfix</em> (ký pháp nghịch Ba Lan), ví dụ <code>3 8 2 / + 5 6 * -</code> — dạng máy tính stack dùng để tính toán.",
+    giaithich: `In node <strong>sau cùng</strong>, sau khi đã xử lý toàn bộ cây con. Dùng trong bài toán <strong>giải phóng bộ nhớ</strong> (xóa cây) — phải xóa lá trước, node cha sau; nếu xóa node cha trước thì mất pointer đến con, bộ nhớ bị leak.`
+  },
+  {
+    name: "laToanTu",
+    desc: "Kiểm tra node là toán tử",
+    tags: ["bool"],
+    code: `bool laToanTu(string s) {
+    return s == "+" || s == "-" ||
+           s == "*" || s == "/";
+}`,
+    congdung: "Hàm helper phân biệt node toán tử <code>+−×÷</code> với node lá (toán hạng số). Được dùng trong hàm <code>tinh()</code> để quyết định nên tính toán hay chuyển thành số.",
+    giaithich: `Tách thành hàm riêng thay vì viết inline vì <strong>nguyên tắc Don't Repeat Yourself</strong> — logic kiểm tra toán tử dùng ở nhiều chỗ. Nếu sau này thêm toán tử mới (vd <code>%</code>) chỉ cần sửa một chỗ duy nhất.`
+  },
+  {
+    name: "tinh",
+    desc: "Tính giá trị biểu thức",
+    tags: ["double","đệ quy"],
+    code: `double tinh(cay L) {
+    if (L == NULL) return 0;
+    if (!laToanTu(L->ND))
+        return atof(L->ND.c_str());
     double a = tinh(L->LKT);
     double b = tinh(L->LKP);
-    if (L->ND == "+")
-        return a + b;
-    if (L->ND == "-")
-        return a - b;
-    if (L->ND == "*")
-        return a * b;
-    if (L->ND == "/")
-        return a / b;
+    if (L->ND == "+") return a + b;
+    if (L->ND == "-") return a - b;
+    if (L->ND == "*") return a * b;
+    if (L->ND == "/") return a / b;
     return 0;
-}
-int main() {
+}`,
+    congdung: "Tính giá trị số học của toàn bộ biểu thức lưu trong cây. Đây là hàm cốt lõi của bài — kết hợp đệ quy hậu thứ tự với logic tính toán để duyệt từ lá lên gốc.",
+    giaithich: `Node lá là số → dùng <code>atof()</code> chuyển string thành double. Node nhánh là toán tử → đệ quy tính giá trị 2 nhánh con trước, rồi áp toán tử. Đây là ứng dụng cổ điển của <strong>đệ quy bottom-up</strong>: tính từ dưới lên, kết quả nhỏ ghép thành kết quả lớn.`
+  },
+  {
+    name: "main",
+    desc: "Hàm chính — khởi tạo & chạy",
+    tags: ["int"],
+    code: `int main() {
     cay T;
     string S[] = {
-
-        "-",
-        "+", "*",
-        "3", "/", "5", "6",
-        "a", "a", "8", "2"  
+        "-","+","*","3","/","5","6",
+        "a","a","8","2"
     };
     int n = 11;
     taocay(T, S, 0, n);
-    cout << "Duyet truoc:\n";
+    cout << "Duyet truoc:\\n";
     duyettruoc(T);
-    cout << "\n\nDuyet giua:\n";
+    cout << "\\n\\nDuyet giua:\\n";
     duyetgiua(T);
-    cout << "\n\nDuyet sau:\n";
+    cout << "\\n\\nDuyet sau:\\n";
     duyetsau(T);
-    cout << "\n\nGia tri bieu thuc:\n";
+    cout << "\\n\\nGia tri bieu thuc:\\n";
     cout << tinh(T);
     return 0;
-}
-</pre>
+}`,
+    congdung: "Điểm vào chương trình. Khai báo mảng biểu thức dưới dạng level-order, gọi <code>taocay()</code> để dựng cây, sau đó gọi lần lượt 3 kiểu duyệt và tính giá trị.",
+    giaithich: `Mảng <code>S[]</code> biểu diễn cây theo thứ tự cấp độ — index <code>0</code> là gốc. Ký hiệu <code>"a"</code> ở vị trí 7, 8 đánh dấu node NULL (node <code>"3"</code> không có con). Cây biểu diễn biểu thức <strong>(3 + 8/2) - (5 * 6)</strong>.`
+  }
+];
 
-<h2>Bài 2: Danh sách liên kết</h2>
-<pre>
-#include &lt;iostream&gt;
-#include &lt;string&gt;
-using namespace std;
-
-typedef struct Nt{
-    int ma;
-    string ten;
-    double gia;
-    Nt * lk;
-} nut;
-
-typedef nut * ds;
-ds khoitao(){
+const fns2 = [
+  {
+    name: "khoitao",
+    desc: "Khởi tạo danh sách rỗng",
+    tags: ["ds"],
+    code: `ds khoitao(){
     return NULL;
-}
-void taonut(ds &p, int x, string y, double z){
+}`,
+    congdung: "Trả về một danh sách liên kết rỗng. Đây là bước bắt buộc để đảm bảo con trỏ đầu danh sách không trỏ vào vùng nhớ ngẫu nhiên.",
+    giaithich: `Tuy đơn giản nhưng <strong>không nên bỏ qua</strong>. Nếu khai báo <code>ds l;</code> mà không khởi tạo, con trỏ <code>l</code> chứa giá trị rác — gọi <code>l->lk</code> ngay sẽ crash. Đặt thành hàm riêng giúp code rõ ý định hơn.`
+  },
+  {
+    name: "taonut",
+    desc: "Tạo và điền dữ liệu một nút mới",
+    tags: ["void"],
+    code: `void taonut(ds &p, int x, string y, double z){
     p = new nut;
     p->ma = x;
     p->ten = y;
     p->gia = z;
-    p->lk = NULL;	
-}
-void themdau(ds &l, int x, string y, double z){
+    p->lk = NULL;
+}`,
+    congdung: "Cấp phát bộ nhớ động cho một nút mới và gán đầy đủ dữ liệu gồm mã, tên và giá. Luôn set <code>lk = NULL</code> ngay khi tạo.",
+    giaithich: `Tham chiếu <code>&p</code> để hàm ghi trực tiếp vào con trỏ của người gọi. <code>p->lk = NULL</code> ngay từ đầu là thói quen tốt — tránh tình huống nút mới vô tình trỏ vào vùng nhớ cũ gây crash hoặc lặp vô tận khi duyệt.`
+  },
+  {
+    name: "themdau",
+    desc: "Thêm nút vào đầu danh sách",
+    tags: ["void"],
+    code: `void themdau(ds &l, int x, string y, double z){
     ds t;
     taonut(t, x, y, z);
     t->lk = l;
     l = t;
-}
-void themcuoi(ds &l, int x, string y, double z){
-    ds t;
-    taonut(t, x, y, z);
-    if(l == NULL){
-        l = t;
-    } else {
+}`,
+    congdung: "Chèn nút mới vào đầu danh sách với độ phức tạp <strong>O(1)</strong> — không cần duyệt toàn bộ danh sách. Nút mới trở thành head mới.",
+    giaithich: `Thứ tự 2 dòng cuối <strong>không được đảo</strong>: phải <code>t->lk = l</code> trước (nút mới trỏ vào head cũ), rồi mới <code>l = t</code> (cập nhật head). Đảo ngược sẽ mất toàn bộ danh sách cũ vì <code>l</code> bị ghi đè trước.`
+  },
+  {
+    name: "themcuoi",
+    desc: "Thêm nút vào cuối danh sách",
+    tags: ["void"],
+    code: `void themcuoi(ds &l, int x, string y, double z){
+    ds t; taonut(t, x, y, z);
+    if(l == NULL){ l = t; }
+    else {
         ds p = l;
-        while(p->lk != NULL)
-            p = p->lk;
+        while(p->lk != NULL) p = p->lk;
         p->lk = t;
     }
-}
-ds timmin(ds l){
+}`,
+    congdung: "Nối nút mới vào cuối danh sách, giữ nguyên thứ tự các nút đã có. Độ phức tạp <strong>O(n)</strong> vì phải duyệt tới nút cuối.",
+    giaithich: `Xử lý riêng trường hợp danh sách rỗng (<code>l == NULL</code>) — nếu không check sẽ bị lỗi khi truy cập <code>p->lk</code>. Vòng <code>while</code> dừng ở nút cuối cùng (nút có <code>lk == NULL</code>), rồi gán <code>p->lk = t</code> để nối.`
+  },
+  {
+    name: "timmin",
+    desc: "Tìm nút có giá nhỏ nhất",
+    tags: ["ds"],
+    code: `ds timmin(ds l){
     if(l == NULL) return NULL;
     ds min = l;
     ds p = l->lk;
     while(p != NULL){
-        if(p->gia < min->gia){
-            min = p;
-        }
+        if(p->gia < min->gia) min = p;
         p = p->lk;
     }
     return min;
-}
-ds ngatnut(ds &l){
+}`,
+    congdung: "Duyệt toàn bộ danh sách và trả về <strong>con trỏ</strong> đến nút có trường <code>gia</code> nhỏ nhất. Kết quả là địa chỉ thật của nút đó trong danh sách (không phải bản sao).",
+    giaithich: `Trả về con trỏ thay vì giá trị để hàm <code>ngatnut()</code> có thể định vị đúng vị trí nút đó và thực hiện tháo ra. Khởi tạo <code>min = l</code> (giả sử nút đầu nhỏ nhất) rồi so sánh dần — kỹ thuật standard cho bài toán tìm min trong danh sách.`
+  },
+  {
+    name: "ngatnut",
+    desc: "Tách nút min ra khỏi danh sách",
+    tags: ["ds"],
+    code: `ds ngatnut(ds &l){
     if(l == NULL) return NULL;
-
     ds min = timmin(l);
     if(min == l){
         l = l->lk;
@@ -179,99 +687,251 @@ ds ngatnut(ds &l){
         return min;
     }
     ds p = l;
-    while(p->lk != min){
-        p = p->lk;
-    }
+    while(p->lk != min) p = p->lk;
     p->lk = min->lk;
     min->lk = NULL;
     return min;
-}
-ds sapxep(ds &l){
+}`,
+    congdung: "Loại bỏ nút nhỏ nhất khỏi danh sách và trả nó về để dùng tiếp trong thuật toán sắp xếp. Là bước cốt lõi của <strong>selection sort</strong> trên danh sách liên kết.",
+    giaithich: `Xử lý 2 trường hợp: nút min là head (chỉ cần dịch head) hoặc nút min ở giữa/cuối (cần tìm nút trước nó để vá lại liên kết). Lệnh <code>min->lk = NULL</code> rất quan trọng — cô lập nút tháo ra, tránh nó còn kéo theo phần sau.`
+  },
+  {
+    name: "sapxep",
+    desc: "Sắp xếp DS tăng dần theo giá",
+    tags: ["ds","đệ quy"],
+    code: `ds sapxep(ds &l){
     ds kq = NULL;
     while(l != NULL){
         ds t = ngatnut(l);
-
-        if(kq == NULL){
-            kq = t;
-        } else {
+        if(kq == NULL){ kq = t; }
+        else {
             ds p = kq;
-            while(p->lk != NULL) 
-			p = p->lk;
+            while(p->lk != NULL) p = p->lk;
             p->lk = t;
         }
     }
     return kq;
-}
-ds tron2ds(ds l, ds q){
-    ds kq = NULL, 
-	cuoi = NULL;
+}`,
+    congdung: "Sắp xếp danh sách liên kết theo giá tăng dần bằng thuật toán <strong>selection sort</strong>. Mỗi lần lấy nút nhỏ nhất từ danh sách gốc rồi nối vào cuối danh sách kết quả.",
+    giaithich: `Danh sách <code>l</code> ban đầu bị <strong>phá hủy hoàn toàn</strong> (rút dần từng nút) trong quá trình sắp xếp, danh sách mới xây dựng trong <code>kq</code>. Đây là in-place selection sort trên linked list — không dùng mảng phụ, chỉ thao tác lại con trỏ. Độ phức tạp <strong>O(n²)</strong>.`
+  },
+  {
+    name: "tron2ds",
+    desc: "Trộn 2 danh sách đã sắp xếp",
+    tags: ["ds"],
+    code: `ds tron2ds(ds l, ds q){
+    ds kq = NULL, cuoi = NULL;
     while(l != NULL && q != NULL){
         ds t;
         if(l->gia < q->gia){
-            t = l;
-            l = l->lk;
+            t = l; l = l->lk;
         } else {
-            t = q;
-            q = q->lk;
+            t = q; q = q->lk;
         }
         t->lk = NULL;
-        if(kq == NULL){
-            kq = cuoi = t;
-        } else {
-            cuoi->lk = t;
-            cuoi = t;
-        }
+        if(kq == NULL){ kq = cuoi = t; }
+        else { cuoi->lk = t; cuoi = t; }
     }
     if(l != NULL) cuoi->lk = l;
     if(q != NULL) cuoi->lk = q;
     return kq;
-}
-void inds(ds l){
+}`,
+    congdung: "Gộp 2 danh sách <strong>đã sắp xếp</strong> thành 1 danh sách sắp xếp mới với độ phức tạp <strong>O(n+m)</strong>. Đây là bước merge trong thuật toán Merge Sort.",
+    giaithich: `Dùng con trỏ <code>cuoi</code> để thêm vào cuối <strong>O(1)</strong> (không phải duyệt lại). So sánh giá 2 đầu danh sách, chọn nút nhỏ hơn nối vào <code>kq</code>. Khi 1 danh sách hết trước, nối phần còn lại của danh sách kia bằng 2 dòng cuối — không cần copy tiếp từng nút.`
+  },
+  {
+    name: "inds",
+    desc: "In toàn bộ danh sách ra màn hình",
+    tags: ["void"],
+    code: `void inds(ds l){
     ds p = l;
     while(p != NULL){
-        cout << p->ma << " - " << p->ten << " - " << p->gia << endl;
+        cout << p->ma << " - "
+             << p->ten << " - "
+             << p->gia << endl;
         p = p->lk;
     }
-}
-int main(){
-	int x;
-	string y;
-	double z;
-    int n = 2;
-    ds l = khoitao();
-    ds q = khoitao();
-    cout<<"ds1\n";
-    for(int i = 0; i < n; i++){
-        cin >> x;
-        cin.ignore();
-        getline(cin,y);
-        cin >> z;
-        themdau(l,x,y,z);
-    }
-    cout<<"ds2\n";
-    for(int i = 0; i < n; i++){
-        cin >> x;
-        cin.ignore();
-        getline(cin,y);
-        cin >> z;
-        themcuoi(q,x,y,z);
-    }
-    cout << "\nDanh sach ban dau1:\n";
-    inds(l);
-        cout << "\nDanh sach ban dau2:\n";
-    inds(q);
-    l = sapxep(l);
-    cout << "\nSau khi sap xep1 :\n";
-    inds(l);
-    q = sapxep(q);
-    cout << "\nSau khi sap xep2 :\n";
-    inds(q);
-    ds lq = tron2ds(l,q);
-    cout << "\n2ds Sau khi sap xep :\n";
-    inds(lq);
-}
-</pre>
+}`,
+    congdung: "Duyệt và in tất cả nút của danh sách theo thứ tự từ đầu đến cuối. Mỗi nút in trên một dòng theo format <code>ma - ten - gia</code>.",
+    giaithich: `Dùng con trỏ tạm <code>p</code> thay vì duyệt trực tiếp qua <code>l</code> để <strong>không làm mất con trỏ đầu danh sách</strong>. Nếu viết <code>while(l != NULL){ ...; l = l->lk; }</code> thì sau khi in xong, <code>l</code> đã trỏ ra ngoài — không thể dùng lại.`
+  }
+];
 
+function tagColor(t) {
+  if(t==='void') return 'tag-void';
+  if(t==='bool') return 'tag-bool';
+  if(t==='double') return 'tag-ds';
+  if(t==='ds') return 'tag-ds';
+  if(t==='int') return 'tag-void';
+  if(t==='đệ quy') return 'tag-rec';
+  return 'tag-void';
+}
+
+function renderFns(fns, containerId, chipClass) {
+  const container = document.getElementById(containerId);
+
+  fns.forEach((fn, i) => {
+    const id = containerId + '-' + i;
+
+    // chip
+    const chip = document.createElement('div');
+    chip.className = 'fn-chip ' + chipClass;
+    chip.id = 'chip-' + id;
+    chip.innerHTML = `
+      <div class="fn-chip-name">${fn.name}()</div>
+      <div class="fn-chip-desc">${fn.desc}</div>
+      <span class="arrow">▶</span>`;
+    chip.onclick = () => togglePanel(id, chip);
+
+    // panel
+    const panel = document.createElement('div');
+    panel.className = 'fn-panel';
+    panel.id = 'panel-' + id;
+
+    const tagHtml = fn.tags.map(t => `<span class="tag ${tagColor(t)}">${t}</span>`).join('');
+
+    panel.innerHTML = `
+      <div class="fn-panel-header">
+        <span class="fn-panel-name">${fn.name}()</span>
+        <button class="copy-btn" onclick="copyText(\`${fn.code.replace(/`/g,'\\`')}\`, this)">
+          <svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"/><path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg>
+          Copy hàm
+        </button>
+      </div>
+      <div class="fn-panel-body">
+        <div class="fn-code-col"><pre>${escapeHtml(fn.code)}</pre></div>
+        <div class="fn-explain-col">
+          <div class="explain-block">
+            <div class="explain-label">Kiểu trả về &amp; phân loại</div>
+            <div class="tag-row">${tagHtml}</div>
+          </div>
+          <div class="explain-block">
+            <div class="explain-label">Công dụng</div>
+            <div class="explain-text">${fn.congdung}</div>
+          </div>
+          <div class="explain-block">
+            <div class="explain-label">Tại sao làm vậy?</div>
+            <div class="explain-text">${fn.giaithich}</div>
+          </div>
+        </div>
+      </div>`;
+
+    // wrap chip + panel
+    const wrap = document.createElement('div');
+    wrap.style.marginBottom = '4px';
+
+    // chips go in a grid, but panels are full-width — need a different layout
+    // We'll render each fn as: chip row (grid of 1) + panel below
+    const chipWrap = document.createElement('div');
+    chipWrap.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px';
+    chipWrap.appendChild(chip);
+
+    container.appendChild(chipWrap);
+    container.appendChild(panel);
+  });
+}
+
+// Render chips in grid but each chip click opens its own panel below the grid row
+// Simpler: render all chips in grid, panels below each group?
+// Actually let's re-render: all chips in one grid, then clicking opens a single shared panel below the grid
+function renderFnsGrouped(fns, containerId, chipClass) {
+  const container = document.getElementById(containerId);
+
+  // Build chip grid
+  const grid = document.createElement('div');
+  grid.className = 'fn-grid';
+  container.appendChild(grid);
+
+  // Build single shared panel
+  const sharedPanel = document.createElement('div');
+  sharedPanel.className = 'fn-panel';
+  sharedPanel.id = 'shared-' + containerId;
+  container.appendChild(sharedPanel);
+
+  let openIdx = -1;
+
+  fns.forEach((fn, i) => {
+    const chip = document.createElement('div');
+    chip.className = 'fn-chip ' + chipClass;
+
+    const tagHtml = fn.tags.map(t => `<span class="tag ${tagColor(t)}">${t}</span>`).join('');
+
+    chip.innerHTML = `
+      <div class="fn-chip-name">${fn.name}()</div>
+      <div class="fn-chip-desc">${fn.desc}</div>
+      <span class="arrow">▶</span>`;
+
+    chip.onclick = () => {
+      if(openIdx === i) {
+        // close
+        chip.classList.remove('open');
+        sharedPanel.classList.remove('open');
+        openIdx = -1;
+        return;
+      }
+      // close previous
+      grid.querySelectorAll('.fn-chip.open').forEach(c => c.classList.remove('open'));
+      chip.classList.add('open');
+      openIdx = i;
+      sharedPanel.classList.add('open');
+      sharedPanel.innerHTML = `
+        <div class="fn-panel-header">
+          <span class="fn-panel-name">${fn.name}()</span>
+          <button class="copy-btn" id="copybtn-${containerId}-${i}">
+            <svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"/><path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg>
+            Copy hàm
+          </button>
+        </div>
+        <div class="fn-panel-body">
+          <div class="fn-code-col"><pre>${escapeHtml(fn.code)}</pre></div>
+          <div class="fn-explain-col">
+            <div class="explain-block">
+              <div class="explain-label">Kiểu trả về &amp; phân loại</div>
+              <div class="tag-row">${tagHtml}</div>
+            </div>
+            <div class="explain-block">
+              <div class="explain-label">Công dụng</div>
+              <div class="explain-text">${fn.congdung}</div>
+            </div>
+            <div class="explain-block">
+              <div class="explain-label">Tại sao làm vậy?</div>
+              <div class="explain-text">${fn.giaithich}</div>
+            </div>
+          </div>
+        </div>`;
+      document.getElementById(`copybtn-${containerId}-${i}`).onclick = () => copyText(fn.code, document.getElementById(`copybtn-${containerId}-${i}`));
+      sharedPanel.scrollIntoView({behavior:'smooth', block:'nearest'});
+    };
+    grid.appendChild(chip);
+  });
+}
+
+renderFnsGrouped(fns1, 'fns-1', '');
+renderFnsGrouped(fns2, 'fns-2', 'teal');
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function copyText(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✓ Đã copy!';
+    setTimeout(() => btn.innerHTML = orig, 1500);
+  });
+}
+
+function copyFull(id, btn) {
+  const el = document.getElementById(id);
+  copyText(el.innerText, btn);
+}
+
+function switchView(v, btn) {
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('view-' + v).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
 </body>
 </html>
-```
